@@ -72,7 +72,7 @@ jobs:
         TF_LOG: ${{ inputs.terraform-log-level }}
 
     - name: Generate Terraform Plan
-      if: ${{ inputs.terraform-destroy }} == false
+      if: ${{ inputs.terraform-destroy == false }}
       working-directory: ./examples
       run: |
         terraform plan -input=false
@@ -83,7 +83,7 @@ jobs:
         TF_LOG: ${{ inputs.terraform-log-level }}
     
     - name: Generate Terraform Destroy Plan
-      if: ${{ inputs.terraform-destroy }} == true
+      if: ${{ inputs.terraform-destroy == true }}
       working-directory: ./examples
       run: |
         terraform plan -input=false -destroy
