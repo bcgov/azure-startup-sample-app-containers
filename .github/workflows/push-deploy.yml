@@ -42,7 +42,7 @@ jobs:
   plan-infrastructure:
     name: Plan Infrastructure
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # environment: ${{ inputs.environment }}
 
     steps:
     - name: Checkout code
@@ -75,7 +75,7 @@ jobs:
       if: ${{ inputs.terraform-destroy == false }}
       working-directory: ./examples
       run: |
-        terraform plan -input=false
+        terraform plan -input=false -out=terraform-$(date +"%Y%m%d%H%M%S").tfplan
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -86,19 +86,74 @@ jobs:
       if: ${{ inputs.terraform-destroy == true }}
       working-directory: ./examples
       run: |
-        terraform plan -input=false -destroy
+        terraform plan -input=false -destroy -out=terraform-destroy-$(date +"%Y%m%d%H%M%S").tfplan
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: terraform-plan
+        path: ./examples/*.tfplan
+        if-no-files-found: 'warn'
+        retention-days: 1
+        compression-level: 0
+        overwrite: false
+
+  deploy-to-dev:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    needs: plan-infrastructure
+    environment: Dev
+    steps:
+    - name: Pre-Script
+      run: |
+        cd ./examples
+        ls -la
+    
+    - uses: actions/download-artifact@v4
+      with:
+        name: terraform-plan
+        path: ./examples    
+    
+    - name: Post-Script
+      run: |
+        cd ./examples
+        ls -la
+
+    - name: Terraform Apply
+      working-directory: ./examples
+      run: |
+        echo 'Placeholder for terraform apply command'
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         TF_LOG: ${{ inputs.terraform-log-level }}
 
-  deploy-infrastructure:
-    name: Deploy Infrastructure
+  deploy-to-test:
+    name: Deploy to TEST
     runs-on: ubuntu-latest
-    needs: plan-infrastructure
-    environment: ${{ inputs.environment }}
+    needs: deploy-to-dev
+    environment: Test
     steps:
+    - name: Pre-Script
+      run: |
+        cd ./examples
+        ls -la
+    
+    - uses: actions/download-artifact@v4
+      with:
+        name: terraform-plan
+        path: ./examples    
+    
+    - name: Post-Script
+      run: |
+        cd ./examples
+        ls -la
+
     - name: Terraform Apply
       working-directory: ./examples
       run: |

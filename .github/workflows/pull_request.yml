@@ -1,5 +1,5 @@
-name: Deploy Infrastructure
-run-name: Deploy Infrastructure
+name: Pull Request
+run-name: Pull Request
 
 on:
   workflow_dispatch:
