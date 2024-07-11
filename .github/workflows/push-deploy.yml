@@ -76,6 +76,7 @@ jobs:
       working-directory: ./examples
       run: |
         terraform plan -input=false -out=terraform-$(date +"%Y%m%d%H%M%S").tfplan
+        echo "TFPlanName=$terraform-$(date +"%Y%m%d%H%M%S")" >> $env:GITHUB_ENV
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -87,6 +88,7 @@ jobs:
       working-directory: ./examples
       run: |
         terraform plan -input=false -destroy -out=terraform-destroy-$(date +"%Y%m%d%H%M%S").tfplan
+        echo "TFPlanName=$terraform-destory-$(date +"%Y%m%d%H%M%S")" >> $env:GITHUB_ENV
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -94,9 +96,20 @@ jobs:
         TF_LOG: ${{ inputs.terraform-log-level }}
     
     - uses: actions/upload-artifact@v4
+      name: Upload Terraform Plan
       with:
         name: terraform-plan
         path: ./examples/*.tfplan
+        if-no-files-found: 'warn'
+        retention-days: 1
+        compression-level: 0
+        overwrite: false
+    
+    - uses: actions/upload-artifact@v4
+      name: Upload .terraform Directory
+      with:
+        name: dotTerraformDir
+        path: ./.terraform
         if-no-files-found: 'warn'
         retention-days: 1
         compression-level: 0
@@ -110,30 +123,27 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Pre-Script
-      run: |
-        pwd
-        ls -la
-        cd ./examples
-        ls -la
     
     - uses: actions/download-artifact@v4
+      name: Download Terraform Plan
       with:
         name: terraform-plan
         path: ./examples    
     
-    - name: Post-Script
-      run: |
-        pwd
-        ls -la
-        cd ./examples
-        ls -la
+    - uses: actions/download-artifact@v4
+      name: Download .terraform Directory
+      with:
+        name: dotTerraformDir
+        path: ./examples
 
     - name: Terraform Apply
       working-directory: ./examples
       run: |
-        echo 'Placeholder for terraform apply command'
+        cd ./examples
+        ls -la
+        echo 'TFPlanName=${{ env.TFPlanName }}'
+        # terraform apply --auto-approve -input=false -lock=false \
+        #   terraform-$(date +"%Y%m%d%H%M%S").tfplan
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
