@@ -110,17 +110,19 @@ jobs:
     steps:
     - name: Pre-Script
       run: |
-        cd ./examples
+        pwd
+        cd examples
         ls -la
     
     - uses: actions/download-artifact@v4
       with:
         name: terraform-plan
-        path: ./examples    
+        path: examples    
     
     - name: Post-Script
       run: |
-        cd ./examples
+        pwd
+        cd examples
         ls -la
 
     - name: Terraform Apply
