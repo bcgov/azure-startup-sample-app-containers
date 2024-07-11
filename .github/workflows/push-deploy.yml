@@ -139,9 +139,9 @@ jobs:
     - name: Terraform Apply
       working-directory: ./examples
       run: |
-        cd ./examples
-        ls -la
         echo 'TFPlanName=${{ env.TFPlanName }}'
+        ls -la
+        
         # terraform apply --auto-approve -input=false -lock=false \
         #   terraform-$(date +"%Y%m%d%H%M%S").tfplan
       env:
