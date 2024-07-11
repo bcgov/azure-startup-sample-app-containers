@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Testing Azure Serverless Functions",
+  "scripts": {
+    "lint": "npx eslint **/*.js --ignore-pattern node_modules/",
+    "lint:fix": "npm run lint -- --fix",
+    "prettier": "npx prettier '{*.js,!(node*)**/*.js}' --check",
+    "prettier:fix": "npm run prettier -- --write",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mongodb": "^4.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.4.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.1"
+  }
+}
