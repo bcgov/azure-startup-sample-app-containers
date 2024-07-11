@@ -106,21 +106,28 @@ jobs:
     name: Deploy to DEV
     runs-on: ubuntu-latest
     needs: plan-infrastructure
-    environment: Dev
+    environment: Dev    
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
     - name: Pre-Script
       run: |
         pwd
+        ls -la
+        cd ./examples
         ls -la
     
     - uses: actions/download-artifact@v4
       with:
         name: terraform-plan
-        path: examples    
+        path: ./examples    
     
     - name: Post-Script
       run: |
         pwd
+        ls -la
+        cd ./examples
         ls -la
 
     - name: Terraform Apply
