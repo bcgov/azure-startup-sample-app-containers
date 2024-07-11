@@ -111,7 +111,6 @@ jobs:
     - name: Pre-Script
       run: |
         pwd
-        cd examples
         ls -la
     
     - uses: actions/download-artifact@v4
@@ -122,7 +121,6 @@ jobs:
     - name: Post-Script
       run: |
         pwd
-        cd examples
         ls -la
 
     - name: Terraform Apply
@@ -143,7 +141,6 @@ jobs:
     steps:
     - name: Pre-Script
       run: |
-        cd ./examples
         ls -la
     
     - uses: actions/download-artifact@v4
@@ -153,7 +150,6 @@ jobs:
     
     - name: Post-Script
       run: |
-        cd ./examples
         ls -la
 
     - name: Terraform Apply
