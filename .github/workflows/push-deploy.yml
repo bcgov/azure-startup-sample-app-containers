@@ -109,7 +109,7 @@ jobs:
       name: Upload .terraform Directory
       with:
         name: dotTerraformDir
-        path: ./.terraform
+        path: ./examples/.terraform
         if-no-files-found: 'warn'
         retention-days: 1
         compression-level: 0
