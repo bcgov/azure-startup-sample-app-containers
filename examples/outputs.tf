@@ -48,12 +48,12 @@ output "container_app_env_custom_domain_verification_id" {
 
 output "container_app_env_default_domain" {
   description = "The Default Domain of the Azure Container App Environment"
-  value       = module.container_app.default_domain
+  value       = module.container_app.container_app_env_default_domain
 }
 
 output "container_app_env_docker_bridge_cidr" {
   description = "The Docker Bridge CIDR of the Azure Container App Environment"
-  value       = module.container_app.container_app_env_default_domain
+  value       = module.container_app.container_app_env_docker_bridge_cidr
 }
 
 output "container_app_env_platform_reserved_cidr" {
