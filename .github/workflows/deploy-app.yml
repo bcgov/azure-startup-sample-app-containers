@@ -14,6 +14,11 @@ on:
         default: 'myapp'
         type: string
         required: true
+      container-app-environment-name:
+        description: 'Name of the Container Apps Environment'
+        default: 'abc123cacdev-acae'
+        type: string
+        required: true
 
 
 permissions:
@@ -69,7 +74,7 @@ jobs:
         az containerapp create \
           --name ${{ inputs.app-name }} \
           --resource-group $RESOURCE_GROUP \
-          --environment "env-album-containerapps" \
+          --environment ${{ env.CONTAINER_APP_ENVIRONMENT_NAME }} \
           --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }} \
           --target-port 8080 \
           --ingress external \
@@ -77,3 +82,4 @@ jobs:
           --query properties.configuration.ingress.fqdn
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+        CONTAINER_APP_ENVIRONMENT_NAME: ${{ inputs.container-app-environment-name }}
