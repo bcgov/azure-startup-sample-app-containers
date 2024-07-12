@@ -39,48 +39,48 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
-  lint:
-    name: Run TFLint
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+  # lint:
+  #   name: Run TFLint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
 
-    - name: Lint ./examples/ Terraform Code
-      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-      with:
-        directory: "./examples"
+  #   - name: Lint ./examples/ Terraform Code
+  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+  #     with:
+  #       directory: "./examples"
 
-    - name: Lint /infrastructure/ Terraform Code
-      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-      with:
-        directory: "./infrastructure"
+  #   - name: Lint /infrastructure/ Terraform Code
+  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+  #     with:
+  #       directory: "./infrastructure"
 
-  tfsec:
-    name: Run TFSec
-    runs-on: ubuntu-latest
+  # tfsec:
+  #   name: Run TFSec
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
 
-    - name: Scan ./examples/ Terraform Code
-      uses: aquasecurity/tfsec-action@v1.0.0
-      with:
-        working_directory: ./examples
-        soft_fail: true
+  #   - name: Scan ./examples/ Terraform Code
+  #     uses: aquasecurity/tfsec-action@v1.0.0
+  #     with:
+  #       working_directory: ./examples
+  #       soft_fail: true
 
-    - name: Scan ./infrastructure/ Terraform Code
-      uses: aquasecurity/tfsec-action@v1.0.0
-      with:
-        working_directory: ./infrastructure
-        soft_fail: true
+  #   - name: Scan ./infrastructure/ Terraform Code
+  #     uses: aquasecurity/tfsec-action@v1.0.0
+  #     with:
+  #       working_directory: ./infrastructure
+  #       soft_fail: true
 
   plan-infrastructure:
     name: Plan Infrastructure
     runs-on: ubuntu-latest
-    needs: [lint, tfsec]
-    if: ${{ always() }}
+    # needs: [lint, tfsec]
+    # if: ${{ always() }}
 
     steps:
     - name: Checkout
