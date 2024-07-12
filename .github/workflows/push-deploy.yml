@@ -39,13 +39,41 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
-  plan-infrastructure:
-    name: Plan Infrastructure
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Lint Terraform Code
+      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+      with:
+        directory: "./examples"
+  
+  tfsec:
+    name: tfsec
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        working_directory: ./examples
+        soft_fail: true
+
+  plan-infrastructure:
+    name: Plan Infrastructure
+    runs-on: ubuntu-latest
+    needs: [lint, tfsec]
+    if: ${{ always() }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up Terraform v${{ inputs.terraform-version }}
       uses: hashicorp/setup-terraform@v2
@@ -118,8 +146,8 @@ jobs:
     needs: plan-infrastructure
     environment: Dev
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up Terraform v${{ inputs.terraform-version }}
       uses: hashicorp/setup-terraform@v2
@@ -196,8 +224,8 @@ jobs:
     needs: deploy-to-dev
     environment: Test
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up Terraform v${{ inputs.terraform-version }}
       uses: hashicorp/setup-terraform@v2
