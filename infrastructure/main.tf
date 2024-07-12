@@ -39,3 +39,17 @@ resource "azurerm_container_registry" "acr" {
     var.tags
   )
 }
+
+resource "azurerm_container_app_environment" "example" {
+  name                = "${local.name_prefix}-acae"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags = merge(
+    var.required_tags,
+    var.tags
+  )
+
+  # infrastructure_subnet_id = var.infrastructure_subnet_id
+  # internal_load_balancer_enabled = var.internal_load_balancer_enabled
+  # zone_redundancy_enabled = var.zone_redundancy_enabled
+}
