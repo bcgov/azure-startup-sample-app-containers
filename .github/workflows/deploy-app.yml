@@ -51,12 +51,14 @@ jobs:
 
     - name: Push Container Image
       run: |
+        az acr login --name ${{ env.CONTAINER_REGISTRY }}
         docker image push ${{ env.CONTAINER_REGISTRY }}/${{ inputs.app-name }}:${{ github.sha }}
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
     
     - name: Deploy Container Image
       run: |
+        az acr login --name ${{ env.CONTAINER_REGISTRY }}
         az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }} --repository ${{ inputs.app-name }} --output table
         
         # Retrieve the resource group name
