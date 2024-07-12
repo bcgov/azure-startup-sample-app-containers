@@ -1,0 +1,76 @@
+name: Deploy Application
+run-name: Deploy Container App
+
+on:
+  workflow_dispatch:
+    inputs:
+      container-registry: 
+        description: 'Azure Container Registry'
+        default: 'abc123cacdevacr.azurecr.io'
+        type: string
+        required: true
+      app-name:
+        description: 'Name of the app'
+        default: 'myapp'
+        type: string
+        required: true
+        
+
+permissions:
+  id-token: write # Required for the Workflow to request an OIDC JWT ID token from Azure EntraID
+  contents: read # This is required for actions/checkout
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC: "true"
+
+jobs:
+  build-push-deploy-container:
+    name: Build-Push-Deploy Container Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Azure Login via OIDC
+      id: azure_login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ env.ARM_CLIENT_ID }}
+        tenant-id: ${{ env.ARM_TENANT_ID }}
+        subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+    - name: Build Container Image
+      working-directory: ./application
+      run: |
+        docker image build --tag ${{ env.CONTAINER_REGISTRY }}/${{ inputs.app-name }}:${{ github.sha }} .
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+
+    - name: Push Container Image
+      run: |
+        docker image push ${{ env.CONTAINER_REGISTRY }}/${{ inputs.app-name }}:${{ github.sha }}
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+    
+    - name: Deploy Container Image
+      run: |
+        az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }} --repository ${{ inputs.app-name }} --output table
+        
+        # Retrieve the resource group name
+        RESOURCE_GROUP=$(az resource list --name ${{ env.CONTAINER_REGISTRY }} --query "[].resourceGroup" -o tsv)
+
+        echo "Resource Group Name: $RESOURCE_GROUP"
+
+        az containerapp create \
+          --name ${{ inputs.app-name }} \
+          --resource-group $RESOURCE_GROUP \
+          --image ${{ env.CONTAINER_REGISTRY }}/${{ inputs.app-name }} \
+          --target-port 8080 \
+          --ingress external \
+          --registry-server ${{ env.CONTAINER_REGISTRY }} \
+          --query properties.configuration.ingress.fqdn
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
