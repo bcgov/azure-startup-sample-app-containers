@@ -44,6 +44,15 @@ No resources.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_container_app_env_custom_domain_verification_id"></a> [container\_app\_env\_custom\_domain\_verification\_id](#output\_container\_app\_env\_custom\_domain\_verification\_id) | The ID of the Custom Domain Verification for the Azure Container App Environment |
+| <a name="output_container_app_env_default_domain"></a> [container\_app\_env\_default\_domain](#output\_container\_app\_env\_default\_domain) | The Default Domain of the Azure Container App Environment |
+| <a name="output_container_app_env_docker_bridge_cidr"></a> [container\_app\_env\_docker\_bridge\_cidr](#output\_container\_app\_env\_docker\_bridge\_cidr) | The Docker Bridge CIDR of the Azure Container App Environment |
+| <a name="output_container_app_env_id"></a> [container\_app\_env\_id](#output\_container\_app\_env\_id) | The ID of the Azure Container App Environment |
+| <a name="output_container_app_env_infrastructure_subnet_id"></a> [container\_app\_env\_infrastructure\_subnet\_id](#output\_container\_app\_env\_infrastructure\_subnet\_id) | The Infrastructure Subnet ID of the Azure Container App Environment |
+| <a name="output_container_app_env_name"></a> [container\_app\_env\_name](#output\_container\_app\_env\_name) | The Name of the Azure Container App Environment |
+| <a name="output_container_app_env_platform_reserved_cidr"></a> [container\_app\_env\_platform\_reserved\_cidr](#output\_container\_app\_env\_platform\_reserved\_cidr) | The Platform Reserved CIDR of the Azure Container App Environment |
+| <a name="output_container_app_env_platform_reserved_dns_ip_address"></a> [container\_app\_env\_platform\_reserved\_dns\_ip\_address](#output\_container\_app\_env\_platform\_reserved\_dns\_ip\_address) | The Platform Reserved DNS IP Addresses of the Azure Container App Environment |
+| <a name="output_container_app_env_static_ip_address"></a> [container\_app\_env\_static\_ip\_address](#output\_container\_app\_env\_static\_ip\_address) | The Static IP Address of the Azure Container App Environment |
 | <a name="output_container_registry_id"></a> [container\_registry\_id](#output\_container\_registry\_id) | The ID of the Azure Container Registry |
 | <a name="output_container_registry_login_server"></a> [container\_registry\_login\_server](#output\_container\_registry\_login\_server) | The Login Server of the Azure Container Registry |
 | <a name="output_container_registry_name"></a> [container\_registry\_name](#output\_container\_registry\_name) | The Name of the Azure Container Registry |

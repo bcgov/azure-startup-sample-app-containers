@@ -28,22 +28,22 @@ output "container_registry_login_server" {
 // MARK: Azure Container App Environment Outputs
 output "container_app_env_id" {
   description = "The ID of the Azure Container App Environment"
-  value       = module.container_app.id
+  value       = module.container_app.container_app_env_id
 }
 
 output "container_app_env_name" {
   description = "The Name of the Azure Container App Environment"
-  value       = module.container_app.name
+  value       = module.container_app.container_app_env_name
 }
 
 output "container_app_env_infrastructure_subnet_id" {
   description = "The Infrastructure Subnet ID of the Azure Container App Environment"
-  value       = module.container_app.infrastructure_subnet_id
+  value       = module.container_app.container_app_env_infrastructure_subnet_id
 }
 
 output "container_app_env_custom_domain_verification_id" {
   description = "The ID of the Custom Domain Verification for the Azure Container App Environment"
-  value       = module.container_app.custom_domain_verification_id
+  value       = module.container_app.container_app_env_custom_domain_verification_id
 }
 
 output "container_app_env_default_domain" {
@@ -53,20 +53,20 @@ output "container_app_env_default_domain" {
 
 output "container_app_env_docker_bridge_cidr" {
   description = "The Docker Bridge CIDR of the Azure Container App Environment"
-  value       = module.container_app.docker_bridge_cidr
+  value       = module.container_app.container_app_env_default_domain
 }
 
 output "container_app_env_platform_reserved_cidr" {
   description = "The Platform Reserved CIDR of the Azure Container App Environment"
-  value       = module.container_app.platform_reserved_cidr
+  value       = module.container_app.container_app_env_platform_reserved_cidr
 }
 
 output "container_app_env_platform_reserved_dns_ip_address" {
   description = "The Platform Reserved DNS IP Addresses of the Azure Container App Environment"
-  value       = module.container_app.platform_reserved_dns_ip_address
+  value       = module.container_app.container_app_env_platform_reserved_dns_ip_address
 }
 
 output "container_app_env_static_ip_address" {
   description = "The Static IP Address of the Azure Container App Environment"
-  value       = module.container_app.static_ip_address
+  value       = module.container_app.container_app_env_static_ip_address
 }
