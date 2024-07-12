@@ -4,7 +4,7 @@ run-name: Deploy Container App
 on:
   workflow_dispatch:
     inputs:
-      container-registry: 
+      container-registry:
         description: 'Azure Container Registry'
         default: 'abc123cacdevacr'
         type: string
@@ -14,7 +14,7 @@ on:
         default: 'myapp'
         type: string
         required: true
-        
+
 
 permissions:
   id-token: write # Required for the Workflow to request an OIDC JWT ID token from Azure EntraID
@@ -33,7 +33,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    
+
     - name: Azure Login via OIDC
       id: azure_login
       uses: azure/login@v2
@@ -55,12 +55,12 @@ jobs:
         docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:${{ github.sha }}
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
-    
+
     - name: Deploy Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io
         az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.app-name }} --output table
-        
+
         # Retrieve the resource group name
         RESOURCE_GROUP=$(az resource list --name ${{ env.CONTAINER_REGISTRY }} --query "[].resourceGroup" -o tsv)
 
@@ -69,6 +69,7 @@ jobs:
         az containerapp create \
           --name ${{ inputs.app-name }} \
           --resource-group $RESOURCE_GROUP \
+          --environment "env-album-containerapps" \
           --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }} \
           --target-port 8080 \
           --ingress external \

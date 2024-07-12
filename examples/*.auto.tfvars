@@ -19,7 +19,3 @@ tags = {
 }
 
 container_registry_sku = "Basic"
-
-# container_app_env_infrastructure_subnet_id = "notset"
-# container_app_env_internal_load_balancer_enabled = false
-# container_app_env_zone_redundancy_enabled = true
