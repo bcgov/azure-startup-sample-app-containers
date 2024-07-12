@@ -42,7 +42,6 @@ jobs:
   plan-infrastructure:
     name: Plan Infrastructure
     runs-on: ubuntu-latest
-    # environment: ${{ inputs.environment }}
 
     steps:
     - name: Checkout code
@@ -127,17 +126,37 @@ jobs:
       with:
         terraform_version: ${{ inputs.terraform-version }}
     
-    - uses: actions/download-artifact@v4
-      name: Download Terraform Plan
-      with:
-        name: terraform-plan
-        path: ./examples    
+        - name: Initializing Terraform
+        working-directory: ./examples
+        run: |
+          terraform init -input=false
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_LOG: ${{ inputs.terraform-log-level }}
+  
+    - name: Generate Terraform Plan
+      if: ${{ inputs.terraform-destroy == false }}
+      working-directory: ./examples
+      run: |
+        terraform plan -input=false -out=terraform.tfplan
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
     
-    - uses: actions/download-artifact@v4
-      name: Download .terraform Directory
-      with:
-        name: dotTerraformDir
-        path: ./examples
+    - name: Generate Terraform Destroy Plan
+      if: ${{ inputs.terraform-destroy == true }}
+      working-directory: ./examples
+      run: |
+        terraform plan -input=false -destroy -out=terraform-destroy.tfplan
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
 
     - name: Terraform Apply
       if: ${{ inputs.terraform-destroy == false }}
