@@ -11,7 +11,7 @@ variable "container_registry_sku" {
 variable "container_registry_admin_enabled" {
   description = "Enable admin user for the Azure Container Registry"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "container_registry_public_network_access_enabled" {
