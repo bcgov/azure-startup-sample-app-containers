@@ -37,6 +37,7 @@ env:
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_USE_OIDC: "true"
+  TIMESTAMP: $(date +"%Y%m%d%H%M%S")
 
 jobs:
   plan-infrastructure:
@@ -75,8 +76,7 @@ jobs:
       if: ${{ inputs.terraform-destroy == false }}
       working-directory: ./examples
       run: |
-        terraform plan -input=false -out=terraform-$(date +"%Y%m%d%H%M%S").tfplan
-        echo "TFPlanName=$terraform-$(date +"%Y%m%d%H%M%S")" >> $env:GITHUB_ENV
+        terraform plan -input=false -out=terraform-${{ env.TIMESTAMP }}.tfplan
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -139,10 +139,7 @@ jobs:
     - name: Terraform Apply
       working-directory: ./examples
       run: |
-        find ./ -type f -name '*.tfplan'
-        echo "TFPlanName=(find ./ -type f -name '*.tfplan')" >> $env:GITHUB_ENV
-
-        echo 'TFPlanName=${{ env.TFPlanName }}'
+        echo 'TIMESTAMP=${{ env.TIMESTAMP }}'
         ls -la
         
         # terraform apply --auto-approve -input=false -lock=false \
