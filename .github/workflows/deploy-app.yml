@@ -52,7 +52,7 @@ jobs:
         tenant-id: ${{ env.ARM_TENANT_ID }}
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
-    - name: Build Container Image
+    - name: Build Backend Container Image
       working-directory: ./application/backend
       run: |
         docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.backend-app-name }} .
@@ -66,7 +66,7 @@ jobs:
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
-    - name: Deploy Container Image
+    - name: Deploy Backend Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io
         az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.backend-app-name }} --output table
@@ -103,21 +103,21 @@ jobs:
         tenant-id: ${{ env.ARM_TENANT_ID }}
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
-    - name: Build Container Image
+    - name: Build Frontend Container Image
       working-directory: ./application/frontend
       run: |
         docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }} .
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
-    - name: Push Container Image
+    - name: Push Frontend Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}
         docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }}
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
-    - name: Deploy Container Image
+    - name: Deploy Frontend Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io
         az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.frontend-app-name }} --output table
@@ -131,7 +131,7 @@ jobs:
           --resource-group $RESOURCE_GROUP \
           --environment ${{ env.CONTAINER_APP_ENVIRONMENT_NAME }} \
           --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }} \
-          --target-port 8080 \
+          --target-port 3000 \
           --env-vars API_BASE_URL=https://$API_BASE_URL \
           --ingress external \
           --registry-server ${{ env.CONTAINER_REGISTRY }}.azurecr.io \
