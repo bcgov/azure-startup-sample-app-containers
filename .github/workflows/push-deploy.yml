@@ -139,6 +139,9 @@ jobs:
     - name: Terraform Apply
       working-directory: ./examples
       run: |
+        find ./ -type f -name '*.tfplan'
+        echo "TFPlanName=(find ./ -type f -name '*.tfplan')" >> $env:GITHUB_ENV
+
         echo 'TFPlanName=${{ env.TFPlanName }}'
         ls -la
         
