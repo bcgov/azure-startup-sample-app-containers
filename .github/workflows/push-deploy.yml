@@ -40,29 +40,40 @@ env:
 
 jobs:
   lint:
-    name: Lint
+    name: Run TFLint
     runs-on: ubuntu-latest    
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Lint Terraform Code
+    - name: Lint ./examples/ Terraform Code
       uses: "infinite-automations/tflint-all-in-one@v1.0.0"
       with:
         directory: "./examples"
+    
+    - name: Lint /infrastructure/ Terraform Code
+      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+      with:
+        directory: "./infrastructure"
   
   tfsec:
-    name: tfsec
+    name: Run TFSec
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: tfsec
+    - name: Scan ./examples/ Terraform Code
       uses: aquasecurity/tfsec-action@v1.0.0
       with:
         working_directory: ./examples
+        soft_fail: true
+
+    - name: Scan ./infrastructure/ Terraform Code
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        working_directory: ./infrastructure
         soft_fail: true
 
   plan-infrastructure:
