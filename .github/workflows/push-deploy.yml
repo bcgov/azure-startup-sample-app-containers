@@ -155,6 +155,7 @@ jobs:
     name: Deploy to DEV
     runs-on: ubuntu-latest
     needs: plan-infrastructure
+    if: ${{ success() }}
     environment: Dev
     steps:
     - name: Checkout
