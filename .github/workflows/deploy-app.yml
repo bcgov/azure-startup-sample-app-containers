@@ -9,9 +9,14 @@ on:
         default: 'abc123cacdevacr'
         type: string
         required: true
-      app-name:
-        description: 'Name of the app'
-        default: 'myapp'
+      backend-app-name:
+        description: 'Backend app name'
+        default: 'album-api'
+        type: string
+        required: true
+      frontend-app-name:
+        description: 'Frontend app name'
+        default: 'albumapp-ui'
         type: string
         required: true
       container-app-environment-name:
@@ -32,8 +37,8 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
-  build-push-deploy-container:
-    name: Build-Push-Deploy Container Image
+  build-backend-container:
+    name: Build-Push-Deploy Backend Container Image
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -48,33 +53,86 @@ jobs:
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
     - name: Build Container Image
-      working-directory: ./application
+      working-directory: ./application/backend
       run: |
-        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }} .
+        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.backend-app-name }} .
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
     - name: Push Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}
-        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}
+        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.backend-app-name }}
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
     - name: Deploy Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io
-        az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.app-name }} --output table
+        az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.backend-app-name }} --output table
 
         # Retrieve the resource group name
         RESOURCE_GROUP=$(az resource list --name ${{ env.CONTAINER_REGISTRY }} --query "[].resourceGroup" -o tsv)
 
         az containerapp create \
-          --name ${{ inputs.app-name }} \
+          --name ${{ inputs.backend-app-name }} \
           --resource-group $RESOURCE_GROUP \
           --environment ${{ env.CONTAINER_APP_ENVIRONMENT_NAME }} \
-          --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }} \
+          --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.backend-app-name }} \
           --target-port 8080 \
+          --ingress external \
+          --registry-server ${{ env.CONTAINER_REGISTRY }}.azurecr.io \
+          --query properties.configuration.ingress.fqdn
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+        CONTAINER_APP_ENVIRONMENT_NAME: ${{ inputs.container-app-environment-name }}
+
+  build-frontend-container:
+    name: Build-Push-Deploy Frontend Container Image
+    runs-on: ubuntu-latest
+    needs: build-backend-container
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Azure Login via OIDC
+      id: azure_login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ env.ARM_CLIENT_ID }}
+        tenant-id: ${{ env.ARM_TENANT_ID }}
+        subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+    - name: Build Container Image
+      working-directory: ./application/frontend
+      run: |
+        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }} .
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+
+    - name: Push Container Image
+      run: |
+        az acr login --name ${{ env.CONTAINER_REGISTRY }}
+        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }}
+      env:
+        CONTAINER_REGISTRY: ${{ inputs.container-registry }}
+
+    - name: Deploy Container Image
+      run: |
+        az acr login --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io
+        az acr repository show-tags --name ${{ env.CONTAINER_REGISTRY }}.azurecr.io --repository ${{ inputs.frontend-app-name }} --output table
+
+        # Retrieve the resource group name
+        RESOURCE_GROUP=$(az resource list --name ${{ env.CONTAINER_REGISTRY }} --query "[].resourceGroup" -o tsv)
+        API_BASE_URL=$(az containerapp show --resource-group $RESOURCE_GROUP --name ${{ inputs.backend-app-name }} --query properties.configuration.ingress.fqdn -o tsv)
+
+        az containerapp create \
+          --name ${{ inputs.frontend-app-name }} \
+          --resource-group $RESOURCE_GROUP \
+          --environment ${{ env.CONTAINER_APP_ENVIRONMENT_NAME }} \
+          --image ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.frontend-app-name }} \
+          --target-port 8080 \
+          --env-vars API_BASE_URL=https://$API_BASE_URL \
           --ingress external \
           --registry-server ${{ env.CONTAINER_REGISTRY }}.azurecr.io \
           --query properties.configuration.ingress.fqdn
