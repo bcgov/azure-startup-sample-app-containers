@@ -50,14 +50,14 @@ jobs:
     - name: Build Container Image
       working-directory: ./application
       run: |
-        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:${{ github.sha }} .
+        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:latest .
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
     - name: Push Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}
-        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:${{ github.sha }}
+        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:latest
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 

@@ -26,7 +26,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_container_registry_admin_enabled"></a> [container\_registry\_admin\_enabled](#input\_container\_registry\_admin\_enabled) | Enable admin user for the Azure Container Registry | `bool` | `false` | no |
+| <a name="input_container_registry_admin_enabled"></a> [container\_registry\_admin\_enabled](#input\_container\_registry\_admin\_enabled) | Enable admin user for the Azure Container Registry | `bool` | `true` | no |
 | <a name="input_container_registry_public_network_access_enabled"></a> [container\_registry\_public\_network\_access\_enabled](#input\_container\_registry\_public\_network\_access\_enabled) | Enable public network access for the Azure Container Registry | `bool` | `true` | no |
 | <a name="input_container_registry_quarantine_policy_enabled"></a> [container\_registry\_quarantine\_policy\_enabled](#input\_container\_registry\_quarantine\_policy\_enabled) | Enable quarantine policy for the Azure Container Registry | `bool` | `false` | no |
 | <a name="input_container_registry_retention_policy"></a> [container\_registry\_retention\_policy](#input\_container\_registry\_retention\_policy) | The retention policy for the Azure Container Registry | <pre>object({<br>    days    = optional(number)<br>    enabled = optional(bool)<br>  })</pre> | `{}` | no |
