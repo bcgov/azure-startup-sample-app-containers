@@ -1,9 +1,13 @@
-name: Deploy Infrastructure
-run-name: Deploy Infrastructure
+name: Pull Request
+run-name: Pull Request
 
 on:
   workflow_dispatch:
     inputs:
+      terraform-destroy:
+        description: 'Destroy the infrastructure'
+        default: false
+        type: boolean
       terraform-version:
         type: choice
         description: Terraform version to use
@@ -25,8 +29,8 @@ on:
         - ERROR
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # Required for the Workflow to request an OIDC JWT ID token from Azure EntraID
+  contents: read # This is required for actions/checkout
 
 env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -36,7 +40,7 @@ env:
 
 jobs:
   plan-infrastructure:
-    name: Deploy Infrastructure
+    name: Plan Infrastructure
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -68,9 +72,21 @@ jobs:
         TF_LOG: ${{ inputs.terraform-log-level }}
 
     - name: Generate Terraform Plan
+      if: ${{ inputs.terraform-destroy == false }}
       working-directory: ./examples
       run: |
         terraform plan -input=false
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
+
+    - name: Generate Terraform Destroy Plan
+      if: ${{ inputs.terraform-destroy == true }}
+      working-directory: ./examples
+      run: |
+        terraform plan -input=false -destroy
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
