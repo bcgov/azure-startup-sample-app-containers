@@ -50,14 +50,14 @@ jobs:
     - name: Build Container Image
       working-directory: ./application
       run: |
-        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:latest .
+        docker image build --tag ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }} .
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
     - name: Push Container Image
       run: |
         az acr login --name ${{ env.CONTAINER_REGISTRY }}
-        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}:latest
+        docker image push ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ inputs.app-name }}
       env:
         CONTAINER_REGISTRY: ${{ inputs.container-registry }}
 
@@ -68,8 +68,6 @@ jobs:
 
         # Retrieve the resource group name
         RESOURCE_GROUP=$(az resource list --name ${{ env.CONTAINER_REGISTRY }} --query "[].resourceGroup" -o tsv)
-
-        echo "Resource Group Name: $RESOURCE_GROUP"
 
         az containerapp create \
           --name ${{ inputs.app-name }} \
