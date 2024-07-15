@@ -3,30 +3,6 @@ run-name: Pull Request
 
 on:
   workflow_dispatch:
-    inputs:
-      terraform-destroy:
-        description: 'Destroy the infrastructure'
-        default: false
-        type: boolean
-      terraform-version:
-        type: choice
-        description: Terraform version to use
-        options:
-        - 1.9.2
-        - 1.8.5
-      environment:
-        description: Environment to deploy to
-        type: environment
-      terraform-log-level:
-        description: Terraform log level
-        type: choice
-        default: WARN
-        options:
-        - TRACE
-        - DEBUG
-        - INFO
-        - WARN
-        - ERROR
 
 permissions:
   id-token: write # Required for the Workflow to request an OIDC JWT ID token from Azure EntraID
@@ -37,21 +13,39 @@ env:
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_USE_OIDC: "true"
+  TERRAFORM_VERSION: "1.9.x"
+  TERRAFORM_LOG_LEVEL: "WARN"
 
 jobs:
-  plan-infrastructure:
-    name: Plan Infrastructure
+  lint:
+    name: Run TFLint
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v4
 
-    - name: Set up Terraform v${{ inputs.terraform-version }}
+    - name: Lint ./examples/ Terraform Code
+      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+      with:
+        directory: "./examples"
+
+    - name: Lint /infrastructure/ Terraform Code
+      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+      if: ${{ always() }}
+      with:
+        directory: "./infrastructure"
+
+  security:
+    name: Run Trivy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Terraform v${{ env.TERRAFORM_VERSION }}
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: ${{ inputs.terraform-version }}
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
 
     - name: Azure Login via OIDC
       id: azure_login
@@ -69,26 +63,45 @@ jobs:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
+        TF_LOG: ${{ env.TERRAFORM_LOG_LEVEL }}
 
     - name: Generate Terraform Plan
-      if: ${{ inputs.terraform-destroy == false }}
       working-directory: ./examples
       run: |
-        terraform plan -input=false
+        terraform plan -input=false -out=terraform.tfplan
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
+        TF_LOG: ${{ env.TERRAFORM_LOG_LEVEL }}
 
-    - name: Generate Terraform Destroy Plan
-      if: ${{ inputs.terraform-destroy == true }}
-      working-directory: ./examples
-      run: |
-        terraform plan -input=false -destroy
-      env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
+    - name: Run Trivy vulnerability scanner in IaC mode
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        scan-type: 'config'
+        hide-progress: false
+        exit-code: '1'
+        ignore-unfixed: true
+        severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+
+  infracost:
+    name: InfraCost Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        # See https://github.com/infracost/actions/tree/master/setup for other inputs
+        # If you can't use this action, use Docker image infracost/infracost:ci-0.10
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Generate Infracost JSON file as the baseline.
+      - name: Generate Infracost Breakdown
+        working-directory: ./examples
+        run: |
+          infracost breakdown --path=. \
