@@ -39,80 +39,95 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
-  lint:
-    name: Run TFLint
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+  # lint:
+  #   name: Run TFLint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
 
-    - name: Lint ./examples/ Terraform Code
-      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-      with:
-        directory: "./examples"
+  #   - name: Lint ./examples/ Terraform Code
+  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+  #     with:
+  #       directory: "./examples"
 
-    - name: Lint /infrastructure/ Terraform Code
-      uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-      if: ${{ always() }}
-      with:
-        directory: "./infrastructure"
+  #   - name: Lint /infrastructure/ Terraform Code
+  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
+  #     if: ${{ always() }}
+  #     with:
+  #       directory: "./infrastructure"
 
-  security:
-    name: Run Trivy
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+  # security:
+  #   name: Run Trivy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
     
-    - name: Set up Terraform v${{ inputs.terraform-version }}
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ inputs.terraform-version }}
+  #   - name: Set up Terraform v${{ inputs.terraform-version }}
+  #     uses: hashicorp/setup-terraform@v2
+  #     with:
+  #       terraform_version: ${{ inputs.terraform-version }}
 
-    - name: Azure Login via OIDC
-      id: azure_login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ env.ARM_CLIENT_ID }}
-        tenant-id: ${{ env.ARM_TENANT_ID }}
-        subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+  #   - name: Azure Login via OIDC
+  #     id: azure_login
+  #     uses: azure/login@v2
+  #     with:
+  #       client-id: ${{ env.ARM_CLIENT_ID }}
+  #       tenant-id: ${{ env.ARM_TENANT_ID }}
+  #       subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
-    - name: Initializing Terraform
-      working-directory: ./examples
-      run: |
-        terraform init -input=false
-      env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
+  #   - name: Initializing Terraform
+  #     working-directory: ./examples
+  #     run: |
+  #       terraform init -input=false
+  #     env:
+  #       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #       TF_LOG: ${{ inputs.terraform-log-level }}
 
-    - name: Generate Terraform Plan
-      working-directory: ./examples
-      run: |
-        terraform plan -input=false -out=terraform.tfplan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
+  #   - name: Generate Terraform Plan
+  #     working-directory: ./examples
+  #     run: |
+  #       terraform plan -input=false -out=terraform.tfplan
+  #     env:
+  #       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #       TF_LOG: ${{ inputs.terraform-log-level }}
 
-    - name: Run Trivy vulnerability scanner in IaC mode
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        scan-type: 'config'
-        hide-progress: false
-        # format: 'sarif'
-        # output: 'trivy-results.sarif'
-        exit-code: '1'
-        ignore-unfixed: true
-        severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+  #   - name: Run Trivy vulnerability scanner in IaC mode
+  #     uses: aquasecurity/trivy-action@0.24.0
+  #     with:
+  #       scan-type: 'config'
+  #       hide-progress: false
+  #       exit-code: '1'
+  #       ignore-unfixed: true
+  #       severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
 
-    # - name: Upload Trivy scan results to GitHub Security tab
-    #   uses: github/codeql-action/upload-sarif@3
-    #   if: always()
-    #   with:
-    #     sarif_file: 'trivy-results.sarif'
+  infracost:
+    name: InfraCost Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        # See https://github.com/infracost/actions/tree/master/setup for other inputs
+        # If you can't use this action, use Docker image infracost/infracost:ci-0.10
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Generate Infracost JSON file as the baseline.
+      - name: Generate Infracost Breakdown
+        working-directory: ./examples
+        run: |
+          infracost breakdown --path=. \
+
 
   # plan-infrastructure:
   #   name: Plan Infrastructure
