@@ -19,3 +19,10 @@ tags = {
 }
 
 container_registry_sku = "Basic"
+
+
+vnet_rg_name                   = "abc123-dev-networking"
+vnet_name                      = "abc123-dev-vwan-spoke"
+subnet_name                    = "acae-subnet"
+internal_load_balancer_enabled = true
+zone_redundancy_enabled        = true

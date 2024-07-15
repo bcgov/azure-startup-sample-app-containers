@@ -49,7 +49,7 @@ resource "azurerm_container_app_environment" "example" {
     var.tags
   )
 
-  # infrastructure_subnet_id = var.infrastructure_subnet_id
-  # internal_load_balancer_enabled = var.internal_load_balancer_enabled
-  # zone_redundancy_enabled = var.zone_redundancy_enabled
+  infrastructure_subnet_id       = local.infrastructure_subnet_id
+  internal_load_balancer_enabled = var.internal_load_balancer_enabled
+  zone_redundancy_enabled        = var.zone_redundancy_enabled
 }

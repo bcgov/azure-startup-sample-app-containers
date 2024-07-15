@@ -33,11 +33,13 @@ No resources.
 | <a name="input_container_registry_sku"></a> [container\_registry\_sku](#input\_container\_registry\_sku) | The SKU of the Azure Container Registry | `string` | n/a | yes |
 | <a name="input_container_registry_zone_redudancy_enabled"></a> [container\_registry\_zone\_redudancy\_enabled](#input\_container\_registry\_zone\_redudancy\_enabled) | Enable zone redundancy for the Azure Container Registry | `bool` | `false` | no |
 | <a name="input_env"></a> [env](#input\_env) | (Required) Name of the envrionment i.e. dev, lab, qa, npe, prd...etc. Used in PostgreSQL Flex Server naming convention of "maz{location\_shortname}{env}{app\_name}psqlflex{index}". Changing this forces a new resource to be created. | `string` | n/a | yes |
-| <a name="input_infrastructure_subnet_id"></a> [infrastructure\_subnet\_id](#input\_infrastructure\_subnet\_id) | (Optional) The existing Subnet to use for the Container Apps Control Plane. | `string` | `null` | no |
 | <a name="input_internal_load_balancer_enabled"></a> [internal\_load\_balancer\_enabled](#input\_internal\_load\_balancer\_enabled) | (Optional) Should the Container Environment operate in Internal Load Balancing Mode? | `bool` | `false` | no |
 | <a name="input_location"></a> [location](#input\_location) | (Required) Azure region to deploy to. Changing this forces a new resource to be created. | `string` | n/a | yes |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | The license plate naming convention used. | `string` | n/a | yes |
+| <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | (Optional) The name of the subnet. | `string` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | (Required) BC-Gov Standard Azure Tags object. | <pre>object({<br>    appclass       = string<br>    appid          = string<br>    appname        = string<br>    appowner       = string<br>    businessunit   = string<br>    canumber       = string<br>    compliance     = string<br>    costcenter     = string<br>    dataclass      = string<br>    env            = string<br>    otl            = string<br>    pii            = string<br>    sharedservices = string<br>    triageticket   = string<br>  })</pre> | n/a | yes |
+| <a name="input_vnet_name"></a> [vnet\_name](#input\_vnet\_name) | (Optional) The name of the virtual network. | `string` | `null` | no |
+| <a name="input_vnet_rg_name"></a> [vnet\_rg\_name](#input\_vnet\_rg\_name) | (Optional) The name of the resource group where the virtual network is located. | `string` | `null` | no |
 | <a name="input_zone_redundancy_enabled"></a> [zone\_redundancy\_enabled](#input\_zone\_redundancy\_enabled) | (Optional) Should the Container App Environment be created with Zone Redundancy enabled? | `bool` | `false` | no |
 
 ## Outputs
