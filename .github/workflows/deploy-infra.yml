@@ -69,7 +69,7 @@ jobs:
       with:
         scan-type: 'config'
         hide-progress: false
-        format: 'sarif'
+        # format: 'sarif'
         # output: 'trivy-results.sarif'
         exit-code: '1'
         ignore-unfixed: true
