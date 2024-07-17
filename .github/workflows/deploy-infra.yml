@@ -17,6 +17,11 @@ on:
       environment:
         description: Environment to deploy to
         type: environment
+      example-to-deploy:
+        description: Example to deploy
+        type: choice
+        options:
+        - container-env-without-vnet
       terraform-log-level:
         description: Terraform log level
         type: choice
@@ -39,49 +44,9 @@ env:
   ARM_USE_OIDC: "true"
 
 jobs:
-  # lint:
-  #   name: Run TFLint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-
-  #   - name: Lint ./examples/ Terraform Code
-  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-  #     with:
-  #       directory: "./examples"
-
-  #   - name: Lint /infrastructure/ Terraform Code
-  #     uses: "infinite-automations/tflint-all-in-one@v1.0.0"
-  #     with:
-  #       directory: "./infrastructure"
-
-  # tfsec:
-  #   name: Run TFSec
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-
-  #   - name: Scan ./examples/ Terraform Code
-  #     uses: aquasecurity/tfsec-action@v1.0.0
-  #     with:
-  #       working_directory: ./examples
-  #       soft_fail: true
-
-  #   - name: Scan ./infrastructure/ Terraform Code
-  #     uses: aquasecurity/tfsec-action@v1.0.0
-  #     with:
-  #       working_directory: ./infrastructure
-  #       soft_fail: true
-
   plan-infrastructure:
     name: Plan Infrastructure
     runs-on: ubuntu-latest
-    # needs: [lint, tfsec]
-    # if: ${{ always() }}
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -100,7 +65,7 @@ jobs:
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
     - name: Initializing Terraform
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform init -input=false
       env:
@@ -111,7 +76,7 @@ jobs:
 
     - name: Generate Terraform Plan
       if: ${{ inputs.terraform-destroy == false }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform plan -input=false -out=terraform.tfplan
       env:
@@ -122,7 +87,7 @@ jobs:
 
     - name: Generate Terraform Destroy Plan
       if: ${{ inputs.terraform-destroy == true }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform plan -input=false -destroy -out=terraform-destroy.tfplan
       env:
@@ -135,7 +100,7 @@ jobs:
       name: Upload Terraform Plan
       with:
         name: terraform-plan
-        path: ./examples/*.tfplan
+        path: ./examples/${{ inputs.example-to-deploy }}/*.tfplan
         if-no-files-found: 'warn'
         retention-days: 1
         compression-level: 0
@@ -145,7 +110,7 @@ jobs:
       name: Upload .terraform Directory
       with:
         name: dotTerraformDir
-        path: ./examples/.terraform
+        path: ./examples/${{ inputs.example-to-deploy }}/.terraform
         if-no-files-found: 'warn'
         retention-days: 1
         compression-level: 0
@@ -175,7 +140,7 @@ jobs:
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
     - name: Initializing Terraform
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform init -input=false
       env:
@@ -186,7 +151,7 @@ jobs:
 
     - name: Generate Terraform Plan
       if: ${{ inputs.terraform-destroy == false }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform plan -input=false -out=terraform.tfplan
       env:
@@ -197,7 +162,7 @@ jobs:
 
     - name: Generate Terraform Destroy Plan
       if: ${{ inputs.terraform-destroy == true }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform plan -input=false -destroy -out=terraform-destroy.tfplan
       env:
@@ -208,7 +173,7 @@ jobs:
 
     - name: Terraform Apply
       if: ${{ inputs.terraform-destroy == false }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform apply --auto-approve -input=false -lock=false \
           terraform.tfplan
@@ -220,39 +185,10 @@ jobs:
 
     - name: Terraform Destroy
       if: ${{ inputs.terraform-destroy == true }}
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform apply --auto-approve -input=false -lock=false \
           terraform-destroy.tfplan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ inputs.terraform-log-level }}
-
-  deploy-to-test:
-    name: Deploy to TEST
-    runs-on: ubuntu-latest
-    needs: deploy-to-dev
-    environment: Test
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Set up Terraform v${{ inputs.terraform-version }}
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: ${{ inputs.terraform-version }}
-
-    - uses: actions/download-artifact@v4
-      with:
-        name: terraform-plan
-        path: ./examples
-
-    - name: Terraform Apply
-      working-directory: ./examples
-      run: |
-        echo 'Placeholder for terraform apply command'
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}

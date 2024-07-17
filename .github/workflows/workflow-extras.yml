@@ -1,8 +1,33 @@
-name: Pull Request
-run-name: Pull Request
+name: Workflow Extras
+run-name: Workflow Extras
 
 on:
   workflow_dispatch:
+    inputs:
+      terraform-version:
+        type: choice
+        description: Terraform version to use
+        options:
+        - 1.9.2
+        - 1.8.5
+      environment:
+        description: Environment to deploy to
+        type: environment
+      example-to-deploy:
+        description: Example to deploy
+        type: choice
+        options:
+        - container-env-without-vnet
+      terraform-log-level:
+        description: Terraform log level
+        type: choice
+        default: WARN
+        options:
+        - TRACE
+        - DEBUG
+        - INFO
+        - WARN
+        - ERROR
 
 permissions:
   id-token: write # Required for the Workflow to request an OIDC JWT ID token from Azure EntraID
@@ -13,8 +38,6 @@ env:
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_USE_OIDC: "true"
-  TERRAFORM_VERSION: "1.9.x"
-  TERRAFORM_LOG_LEVEL: "WARN"
 
 jobs:
   lint:
@@ -24,10 +47,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Lint ./examples/ Terraform Code
+    - name: Lint ./examples/${{ inputs.example-to-deploy }}/ Terraform Code
       uses: "infinite-automations/tflint-all-in-one@v1.0.0"
       with:
-        directory: "./examples"
+        directory: "./examples/${{ inputs.example-to-deploy }}"
 
     - name: Lint /infrastructure/ Terraform Code
       uses: "infinite-automations/tflint-all-in-one@v1.0.0"
@@ -42,10 +65,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Terraform v${{ env.TERRAFORM_VERSION }}
+    - name: Set up Terraform v${{ inputs.terraform-version }}
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: ${{ env.TERRAFORM_VERSION }}
+        terraform_version: ${{ inputs.terraform-version }}
 
     - name: Azure Login via OIDC
       id: azure_login
@@ -56,24 +79,24 @@ jobs:
         subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
 
     - name: Initializing Terraform
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform init -input=false
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ env.TERRAFORM_LOG_LEVEL }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
 
     - name: Generate Terraform Plan
-      working-directory: ./examples
+      working-directory: ./examples/${{ inputs.example-to-deploy }}
       run: |
         terraform plan -input=false -out=terraform.tfplan
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        TF_LOG: ${{ env.TERRAFORM_LOG_LEVEL }}
+        TF_LOG: ${{ inputs.terraform-log-level }}
 
     - name: Run Trivy vulnerability scanner in IaC mode
       uses: aquasecurity/trivy-action@0.24.0
@@ -102,6 +125,6 @@ jobs:
 
       # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost Breakdown
-        working-directory: ./examples
+        working-directory: ./examples/${{ inputs.example-to-deploy }}
         run: |
           infracost breakdown --path=. \
