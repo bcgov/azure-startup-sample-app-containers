@@ -1,5 +1,5 @@
 module "container_app" {
-  source = "../infrastructure"
+  source = "../../infrastructure"
 
   service_name = var.service_name
   location     = lower(var.location)
@@ -12,9 +12,9 @@ module "container_app" {
   container_registry_quarantine_policy_enabled     = var.container_registry_quarantine_policy_enabled
   container_registry_zone_redudancy_enabled        = var.container_registry_zone_redudancy_enabled
 
-  # infrastructure_subnet_id = var.infrastructure_subnet_id
-  # internal_load_balancer_enabled = var.internal_load_balancer_enabled
-  # zone_redundancy_enabled = var.zone_redundancy_enabled
+  infrastructure_subnet_id       = var.infrastructure_subnet_id
+  internal_load_balancer_enabled = var.internal_load_balancer_enabled
+  zone_redundancy_enabled        = var.zone_redundancy_enabled
 
   tags = var.tags
 }

@@ -1,5 +1,5 @@
 module "container_app" {
-  source = "../infrastructure"
+  source = "../../infrastructure"
 
   service_name = var.service_name
   location     = lower(var.location)

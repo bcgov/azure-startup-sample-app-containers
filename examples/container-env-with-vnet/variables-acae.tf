@@ -9,11 +9,6 @@ variable "internal_load_balancer_enabled" {
   description = "(Optional) Should the Container Environment operate in Internal Load Balancing Mode?"
   type        = bool
   default     = false
-
-  # validation {
-  #   condition = (var.internal_load_balancer_enabled == true && var.infrastructure_subnet_id == null)
-  #   error_message = "ERROR: The variable \"internal_load_balancer_enabled\" cannot be set to true if the variable \"infrastructure_subnet_id\" is not set."
-  # }
 }
 
 variable "zone_redundancy_enabled" {
