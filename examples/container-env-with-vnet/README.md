@@ -16,7 +16,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_container_app"></a> [container\_app](#module\_container\_app) | ../infrastructure | n/a |
+| <a name="module_container_app"></a> [container\_app](#module\_container\_app) | ../../infrastructure | n/a |
 
 ## Resources
 

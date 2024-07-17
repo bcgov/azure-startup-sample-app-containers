@@ -1,10 +1,4 @@
 # Azure Container App Environment Variables
-# variable "infrastructure_subnet_id" {
-#   description = "(Optional) The existing Subnet to use for the Container Apps Control Plane."
-#   type        = string
-#   default     = null
-# }
-
 variable "vnet_rg_name" {
   description = "(Optional) The name of the resource group where the virtual network is located."
   type        = string
